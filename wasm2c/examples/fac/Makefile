@@ -14,4 +14,4 @@ fac.wasm: fac.wat ../../../bin/wat2wasm
 fac.c: fac.wasm ../../../bin/wasm2c
 	../../../bin/wasm2c $< -o $@
 
-.PHONY: all clean
+.PHONY: clean all

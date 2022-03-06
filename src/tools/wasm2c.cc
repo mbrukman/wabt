@@ -78,6 +78,14 @@ static void ParseOptions(int argc, char** argv) {
         s_outfile = argument;
         ConvertBackslashToSlash(&s_outfile);
       });
+  parser.AddOption(
+      'n', "module-name", "MODNAME",
+      "Unique name for the module being generated. This name is prefixes to "
+      "each"
+      "of the global C symbols that are generated. By default the module\n"
+      "module name from the names section is used. If that is not present the\n"
+      "name of the input file is used as the default.\n",
+      [](const char* argument) { s_write_c_options.module_name = argument; });
   s_features.AddOptions(&parser);
   parser.AddOption("no-debug-names", "Ignore debug names in the binary file",
                    []() { s_read_debug_names = false; });
@@ -153,6 +161,15 @@ int ProgramMain(int argc, char** argv) {
           FileStream c_stream(s_outfile.c_str());
           FileStream h_stream(header_name_full);
           std::string_view header_name = GetBasename(header_name_full);
+          if (s_write_c_options.module_name.empty()) {
+            s_write_c_options.module_name = module.name;
+            if (s_write_c_options.module_name.empty()) {
+              // In the absence of module name in the names section use the
+              // filename.
+              s_write_c_options.module_name =
+                  StripExtension(GetBasename(s_infile));
+            }
+          }
           result =
               WriteC(&c_stream, &h_stream, std::string(header_name).c_str(),
                      &module, s_write_c_options);
